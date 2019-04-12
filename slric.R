@@ -1,5 +1,4 @@
 library("jsonlite")
-#library("curl")
 
 corpora <- "rus"
 
@@ -35,12 +34,23 @@ reorganisation <- function(x){
   df <- data.frame(x$Element[!duplicated(x$Element)], stringsAsFactors = F)
   for (m in metrics){
     df$t <- x[x$Metric==m, 2]
-    #names(df$t) <- m
+    df$t <- as.numeric(as.factor(df$t))
     names(df)[names(df) == 't'] <- m
+    names(df)[1] <- "cast"
   }
   return (df)
 }
 
 slric_df <- lapply(plays, reorganisation)
+names(slric_df) <- metadata$name
 
+ranking <- function(x){
+  df <- data.frame(x$cast, stringsAsFactors = F)
+  for (col in names(x)[-1]){
+    df$t <- rank(-x[col], ties.method = "min")
+    names(df)[names(df) == 't'] <- paste0(col, "_rank")
+  }
+  return(df)
+}
 
+ranked_slric_df <- lapply(slric_df, ranking)
